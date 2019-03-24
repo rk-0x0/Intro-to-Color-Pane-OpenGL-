@@ -11,22 +11,18 @@ float r,g,b;
 
 void getColor(int x,int y)
 {
-    int p[3];
+    unsigned char p[3];
     glReadPixels
         (
         x,y,
         1, 1,
-        GL_RGB, GL_INT,
+        GL_RGB, GL_UNSIGNED_BYTE,
         &p[0]
         );
 
-     r =(float) p[0]/2147483647;
-     g = (float)p[1]/2147483647;
-     b= (float)p[2]/2147483647;
-
     // cout<<r<<g<<b<<endl;
 
-    glColor3f(r,g,b);
+    glColor3ub(p[0],p[1],p[2]);
     glBegin(GL_POLYGON);
     for(unsigned int i=0;i<points.size();i++)
         glVertex2i(points[i].first,points[i].second);
@@ -69,12 +65,30 @@ void getColor(int x,int y)
             }
         }
     }
+void DisplayText(string text, int x, int y, int font)
+{
+	void *p = NULL;
+	if (font < 8 && font>1)
+        p = ((void *)font);
+	else
+	    p = ((void *)5);
 
+	glColor3f(1, 1, 1);
+	glRasterPos2f(x, y);
+	size_t len = text.length();
+	for (int i = 0; i < len; i++)
+		glutBitmapCharacter(p, (int)text[i]);
+
+	glColor3f(1, 0, 0);
+}
 
 
 void my_display()
 {
-    glBegin(GL_POLYGON);
+
+    DisplayText("Right-click to create, after giving vertices.",40,height-20,8);
+
+   glBegin(GL_POLYGON);
    glColor3f(1.0f,0.0f,0.0f);
    glVertex2f(width-100,0);
    glColor3f(0.0f,1.0f,0.0f);
@@ -119,12 +133,15 @@ void my_mouse(int button,int state,int x,int y)
 {
     if(button==GLUT_LEFT_BUTTON && state==GLUT_DOWN && f!=-1)
         {   f++;
+           y= height-y;
             if(x>width-100)
                 x=width-100;
+            if(y>height-40)
+                y=height-40;
 
             pair<float,float> p;
             p.first=(float)(x);
-            p.second=(float)((height-y));
+            p.second=(float)(y);
 
             points.push_back(p);
 
@@ -147,6 +164,10 @@ void my_mouse(int button,int state,int x,int y)
 
 
 }
+void Motion(int x,int y)
+{
+	getColor(x, height-y);
+}
 void myinit()
 {
     glClearColor(0.0,0.0,0.0,0.0);
@@ -167,6 +188,7 @@ int main(int argc,char* argv[])
 
     glutDisplayFunc(my_display);
     glutMouseFunc(my_mouse);
+    glutMotionFunc(Motion);
     myinit();
     glutMainLoop();
 
